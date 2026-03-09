@@ -1071,7 +1071,6 @@ dpos_commission_effective : 604800  # 7 天生效 验证者调整佣金后 7 天
 
 假设验证者平均出块，每个验证者年佣金 = 105,120 / 21 = 5,005.71 VCITY
 
-![](static/Pt68boQMVo8biRxPIdScdbYRnNh.jpg)
 
 #### 5.通用计算公式
 
