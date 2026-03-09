@@ -821,6 +821,7 @@ Effective Tip = min(GasTipCap, GasFeeCap - BaseFee)
 
 Effective Tip = GasPrice - BaseFee（会扣除 BaseFee）
 
+下面是代码逻辑流程
 
 配置文件中
 
@@ -917,17 +918,184 @@ Keep Blocks    | false
 
 ##### 9.2.2.3、奖励数据库（BoltDB - dpos.db.rewards）
 
-## 十、故障和提案的生命周期
+## **十、配置讲解**
 
-### 10.1 故障
+### **10.1 线上测试网配置**
 
-#### **10.1.1 故障发生阶段**
+dpos_validators_count: 21
+
+dpos_missed_blocks_percentage: 1000  #1000 个基点 10%
+
+dpos_minor_offense_slash_rate: 50    #50 个基点 0.5%
+
+dpos_severe_offense_slash_rate: 1000  #1000 个基点 10%
+
+base_fee_config: "1000000000:2:8"  # baseFee:baseFeeEM:baseFeeChangeDenom
+
+burn_contract: "0:0x0000000000000000000000000000000000000000" #目前配置为空，base fee 目前直接给矿工
+
+dpos_proposal_vote_period: "1d"  # 表决期 1 天
+
+dpos_proposal_valid_period: "5d"  # 有效期 5 天
+
+dpos_delegate_threshold: "1000000000000000000000"  # 1000 VCITY
+
+dpos_epoch_duration: "1h"
+
+dpos_reward_distribution: "0x4BCBB0e87ff0Bd8c6bD4968617b17b2e2DC12EBe"  # 奖励分发账户，目前采用创世中的根账户
+
+dpos_reward_amount: "120000000000000000000"  # 每个 epoch 120 VCITY
+
+dpos_min_freeze_period: 300      # 最小冻结期（秒，5 分钟）
+
+dpos_unfreeze_lock_period: 600   # 解冻锁定期（秒，10 分钟）
+
+dpos_commission_radio: 1000       # 佣金比例 1000 个基点 10%
+
+dpos_commission_effective :  30m # 30 分生效 验证者调整佣金后 30 分钟以后下一个 epoch 结束即可自动转正，无需手动操作
+
+**漏块率门槛**
+
+dpos_missed_blocks_percentage，漏块超过此门槛视为漏块故障，执行
+
+**漏块扣除比例**
+
+dpos_minor_offense_slash_rate
+
+**双签扣除比例**
+
+dpos_severe_offense_slash_rate
+
+**验证者规模 / 容错**
+
+- dpos_validators_count: 每轮参与出块的验证者数量（例如 21 个）。决定委员会规模、容错阈值（默认拜占庭容错 ⌊(n−1)/3⌋）。
+
+**EIP-1559 / 交易费用**
+
+- base_fee_config: baseFee:baseFeeEM:baseFeeChangeDenom
+- baseFee: 创世或切换时的初始 base fee（wei）。
+- baseFeeEM: Elasticity multiplier，控制 gas 目标区间。
+- baseFeeChangeDenom: 算 base fee 调整幅度的分母。
+- burn_contract: blockNumber:address 格式，指定从哪个高度开始把 base fee 或罚没发送到哪个合约地址（为 0 表示销毁）。
+
+**治理提案周期**
+
+- dpos_proposal_vote_period: 每个治理提案的投票窗口长度（如 "1d" = 1 天）。投票期内投出支持率需达标，否则提案失败。
+- dpos_proposal_valid_period: 提案自创建起的总有效期（如 "5d"）。过期后自动作废，即使还没投票或投票未结束。
+
+**受托注册 / 押金门槛**
+
+- dpos_delegate_threshold: 注册成为受托人的保证金（以 wei 表示，1e21 = 1000 VCITY）。同时也是投票阈值（谁拥有 ≥ 该额度可参与投票）。
+- dpos_epoch_duration: 重新计算排名、发放奖励、轮换委员会的周期（如 "1h" = 1 小时）。
+- dpos_reward_distribution: 奖励发放的系统账户地址（受托奖励从这里发）。
+- dpos_reward_amount: 每个 epoch 要分配到奖励池的总金额（wei），后续再按比例拆给验证者 / 投票者。
+
+**奖励分配比例**
+
+- dpos_validator_reward_ratio: 每个 epoch 发放给验证者的百分比（整数）。例如 70 表示 70% 给验证者。
+- dpos_voter_reward_ratio: 发给所有投票者的百分比。例如 30 表示 30% 给投票者。两者相加应为 100。内部会根据投票权重再行二次分配。
+
+**冻结 / 解冻流程**
+
+- dpos_min_freeze_period: 注册受托人后必须冻结多少秒，期间不能退出（例如 300 秒 = 5 分钟）。
+- dpos_unfreeze_lock_period: 当满足最小冻结期并退出受托人后，保证金进入锁定状态的时间（例如 600 秒 = 10 分钟）。锁定期结束才真正解锁回可用余额。
+
+### 10.2 收益率计算
+
+下面基于上面的参数，列出 apy：
+
+1. 实际 APY 取决于总质押量：质押越多，APY 越低
+2. 验证者数量影响：21 个验证者会分配奖励
+
+- 每个 Epoch 奖励: 120 VCITY
+- Epoch 时长: 1 小时
+- 每年 Epoch 数: 8,760 个
+- 年总奖励: 1,051,200 VCITY
+- 佣金率: 10% (1000 基点)
+- 验证者数量: 21 个
+
+#### 投票者 APY（基于总质押量）
+
+投票者年总奖励 = 1,051,200 × 90% = 945,600 VCITY
+
+投票者 APY = (945,600 / 总质押量) × 100%
+
+#### 验证者 APY（基于验证者质押量）
+
+验证者年总佣金 = 1,051,200 × 10% = 105,120 VCITY
+
+验证者 APY = (105,120 / 验证者质押量) × 100%
+
+注意：验证者实际 APY 还取决于：
+
+- 验证者的出块比例（21 个验证者平均分配时，每个验证者约 4.76%）
+- 验证者自己的质押量
+- 验证者获得的投票量
+
+#### 总质押量与投票者 APY 对照表
+
+#### 4.验证者 APY 示例
+
+假设验证者平均出块，每个验证者年佣金 = 105,120 / 21 = 5,005.71 VCITY
+
+#### 5.通用计算公式
+
+epoch_reward = 120  # VCITY per epoch
+
+epochs_per_year = 365 * 24  # 8,760 epochs
+
+annual_reward = epoch_reward * epochs_per_year  # 1,051,200 VCITY
+
+commission_rate = 0.10  # 10%
+
+voter_reward_ratio = 1 - commission_rate  # 90%
+
+#投票者奖励
+
+voter_annual_reward = annual_reward * voter_reward_ratio  # 945,600 VCITY
+
+#验证者佣金
+
+validator_annual_commission = annual_reward * commission_rate  # 105,120 VCITY
+
+#计算 APY
+
+total_staked = 10000000  # 10,000,000 VCITY (示例)
+
+voter_apy = (voter_annual_reward / total_staked) * 100
+
+print(f"投票者 APY: {voter_apy:.2f}%")
+
+validator_staked = 100000  # 100,000 VCITY per validator (示例)
+
+validator_commission_per_validator = validator_annual_commission / 21  # 假设 21 个验证者平均分配
+
+validator_apy = (validator_commission_per_validator / validator_staked) * 100
+
+print(f"验证者 APY: {validator_apy:.2f}%")
+
+#### **6.总结**
+
+1. 投票者 APY 与总质押量成反比：质押越多，APY 越低
+2. 验证者 APY 取决于：
+
+- 验证者自己的质押量
+- 验证者的出块比例（影响获得的佣金）
+- 验证者获得的投票量（影响奖励池大小）
+
+1. 10% 佣金率意味着：投票者获得 90% 奖励，验证者获得 10% 佣金
+
+## 十一、故障和提案的生命周期
+
+### 11.1 故障
+
+#### **11.1.1 故障发生阶段**
 
 - **时间点**：节点在某个 Epoch（例如 Epoch N）期间发生故障
 - **故障表现**：节点漏块，漏块率超过阈值（默认 10%）
 - **状态**：节点仍在当前 Epoch 的验证者集合中，但已标记为故障
 
-#### **10.1.2 故障检测阶段**
+#### **11.1.2 故障检测阶段**
 
 - **时间点**：Epoch N 的结束区块（epoch end block）
 - **检测内容**：
@@ -942,7 +1110,7 @@ Keep Blocks    | false
   3. 更新内存中的故障状态（`updateMemoryFaultStatus()`）
   4. 将故障标志写入 `pendingFaultFlags`，后续写入 ExtraData
 
-#### **10.1.3 验证者集合计算阶段**
+#### **11.1.3 验证者集合计算阶段**
 
 - **时间点**：Epoch N 的结束区块（与故障检测在同一区块）
 - **处理流程**：
@@ -956,7 +1124,7 @@ Keep Blocks    | false
      - 生成新的验证者集合
   4. **写入 ExtraData**：将新的验证者集合写入区块的 ExtraData
 
-#### **10.1.4 故障生效阶段**
+#### **11.1.4 故障生效阶段**
 
 - **时间点**：下一个 Epoch（Epoch N+1）开始
 - **效果**：故障节点被排除在出块者列表之外，不再参与出块
