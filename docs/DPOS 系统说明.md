@@ -821,9 +821,6 @@ Effective Tip = min(GasTipCap, GasFeeCap - BaseFee)
 
 Effective Tip = GasPrice - BaseFee（会扣除 BaseFee）
 
-下面是代码逻辑流程
-
-![](static/Om99b6dXjoCrFLxiHFTcHNOsnUd.png)
 
 配置文件中
 
