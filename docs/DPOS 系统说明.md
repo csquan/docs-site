@@ -1067,10 +1067,6 @@ dpos_commission_effective : 604800  # 7 天生效 验证者调整佣金后 7 天
 - 验证者自己的质押量
 - 验证者获得的投票量
 
-#### 总质押量与投票者 APY 对照表
-
-![](static/ICVqbpbino5TXrxskXeccZS5n62.jpg)
-
 #### 4.验证者 APY 示例
 
 假设验证者平均出块，每个验证者年佣金 = 105,120 / 21 = 5,005.71 VCITY
