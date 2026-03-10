@@ -6,7 +6,7 @@
 
 ### 一、生产节点数据目录及配置
 
-从 [https://github.com/Vcity-Team/vcitychain/releases/tag/v2.0.0](https://github.com/Vcity-Team/vcitychain/releases/tag/v2.0.0) 下载可执行程序 vcitychain（根据操作系统选择），config，data（由于数据文件超出限制，所以请参见发布说明下载）。
+从 [https://github.com/Vcity-Team/vcitychain/releases/tag/v2.0.0](https://github.com/Vcity-Team/vcitychain/releases/tag/v2.0.0) 下载可执行程序 vcitychain（根据操作系统选择），config。
 
 1.新建节点运行目录，拷贝下载的可执行程序，然后运行
 
@@ -27,13 +27,12 @@ Node ID              = 16Uiu2HAmG7sgWFVUGFfHQCdN5Tt8AqExxKXEDmmMnEiUEzdMDoRf
 
 2.将创世文件和公共配置文件放在 node1 的平级目录，节点单独的配置文件放在 node1 下面。一般情况下，如果本机只跑一个节点，那么节点单独的配置文件可以不用修改，否则需要修改里面的端口。
 
-3.将区块数据放在 node1 目录下。
 
 ### 二、启动程序
 
 ./vcitychain server --config ./node1/node-config-validator.yaml    --consensus-switch-height=3763800
 
-程序首先会同步区块，直到与测试网高度一致，由于我们之前已经下载了区块数据，会大大缩短同步时间，剩余同步时间视主网高度而定。
+程序首先会同步区块，直到与测试网高度一致，同步时间视测试网高度而定。
 
 ### 三、投票
 
