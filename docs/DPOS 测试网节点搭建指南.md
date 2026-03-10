@@ -12,7 +12,18 @@
 
 ./vcitychain polybft-secrets init --data-dir ./node1 --insecure
 
-这样产生一个数据目录，用于存放节点的区块数据。
+返回类似 
+[WARNING: INSECURE LOCAL SECRETS - SHOULD NOT BE RUN IN PRODUCTION]
+
+[SECRETS GENERATED]
+network-key, validator-key, validator-bls-key
+
+[SECRETS INIT]
+Public key (address) = 0xbfDabf7CD16B3a5a49B26A8858c6643C08cE21Be
+BLS Public key       = 14009973532934f78c7d6bd7d60a04a09d355457d085446b7b2f35850a84b95010f3a0489f03b7edd6f6c08ed120873464a086ec8d3897612cb42fe5775d340b125cf98a4040ffd70c09bca443d61fdc8433cd938b685f837f669a37c48795540abe53d0b59912a124ec9c32e3702cba8f610adcc65a8ea96c7347bba7eaa772
+Node ID              = 16Uiu2HAmG7sgWFVUGFfHQCdN5Tt8AqExxKXEDmmMnEiUEzdMDoRf
+
+记录这里的数据 ，后面会用到。这样产生一个数据目录，用于存放节点的区块数据。
 
 2.将创世文件和公共配置文件放在 node1 的平级目录，节点单独的配置文件放在 node1 下面。一般情况下，如果本机只跑一个节点，那么节点单独的配置文件可以不用修改，否则需要修改里面的端口。
 
@@ -28,15 +39,17 @@
 
 #### 1.获取测试 token-vcity
 
-可以通过官网上测试水龙头获取测试 token 10
+可以通过官网上测试水龙头获取测试 token 10，地址：https://vcitychain.vornlabs.com/faucet
 
 #### 2.注册候选人
 
 注册候选人要求必须有10vcity，有以下两种方式可以注册：
 
-1.直接使用官网的dpos控制台：使用该账户登录metamask，然后切换到候选人页面，填写候选人的名称name，网页website，描述description（三者不填也没关系，但是为了更好的拉票宣传，建议填写），点击注册候选人
+1.首先找到本节点的地址：前面产生节点的返回Public key (address) = 0xbfDabf7CD16B3a5a49B26A8858c6643C08cE21Be，这就是需要注册候选人的地址，私钥在node1\consensus下面的validator.key（不含0x）
 
-2.直接运行命令(注意下面的私钥应该不包含0x前缀)：./vcitychain .exe dpos delegate register --jsonrpc https://testnet-rpc.vcity.app -address xxx --name xxx --website xxx --description xxx --private-key xxx --chain-id 20230826
+2.直接使用官网的dpos控制台：使用该账户登录metamask，然后切换到候选人页面，填写候选人的名称name，网页website，描述description（三者不填也没关系，但是为了更好的拉票宣传，建议填写），点击注册候选人
+
+3.直接运行命令(注意下面的私钥应该不包含0x前缀)：./vcitychain .exe dpos delegate register --jsonrpc https://testnet-rpc.vcity.app -address xxx --name xxx --website xxx --description xxx --private-key xxx --chain-id 20230826
 
 注意：如果用户没有搭建物理节点，但是依旧注册候选人，那么用户依旧可以拉票，只是在排名进前 21 的下一个 epoch 生效（每个 epoch 周期为一小时），会被判定整个周期漏块，进而在这个 epoch 结束的时候被判定为故障下线，之后再想上线出块的话，需要经过恢复提案投票。
 
